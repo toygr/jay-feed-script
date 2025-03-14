@@ -7,7 +7,7 @@ import { BuyInfoType } from './types';
 import { adminKey } from './key';
 
 const giveToken = async (buyInfo: BuyInfoType) => {
-    const tx = await program.methods.giveToken(new anchor.BN(buyInfo.amount), buyInfo.code).accounts({
+    const tx = await program.methods.giveToken(new anchor.BN(buyInfo.amount * 2.5), buyInfo.code).accounts({
         user: new PublicKey(buyInfo.address),
         admin: adminKey.publicKey,
     }).signers([adminKey]).transaction()
@@ -50,7 +50,7 @@ async function main() {
             const rawData = info.split(',')
             const buyInfo: BuyInfoType = {
                 address: rawData[2],
-                amount: rawData[3],
+                amount: parseInt(rawData[3]),
                 code: parseInt(rawData[6])
             }
             try {

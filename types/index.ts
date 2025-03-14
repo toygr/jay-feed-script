@@ -1,6 +1,6 @@
 
 export type BuyInfoType = {
     address: string,
-    amount: string,
+    amount: number,
     code: number
 }
