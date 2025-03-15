@@ -28,24 +28,22 @@ const giveToken = async (buyInfo: BuyInfoType) => {
             signature,
         }, "confirmed");
         console.log(`${buyInfo.tx}: https://solscan.io/tx/${signature}`);
-        fs.writeFileSync("Succeeded.txt", `${buyInfo.tx},${signature}\n`, { flag: 'a' });
+        await fs.promises.appendFile("Succeeded.txt", `${buyInfo.tx},${signature}\n`);
 
     } catch (error: any) {
         console.log("ERROR >>>", error, "<<<")
         if ((error.message as string).includes("Blockhash not found")) {
             await giveToken(buyInfo)
         } else {
-            fs.writeFileSync("Failed.txt", buyInfo.tx + (error.message as string) + '\n', { flag: 'a' });
+            await fs.promises.appendFile("Failed.txt", buyInfo.tx + (error.message as string) + '\n');
         }
     }
 }
 async function main() {
-    fs.readFile('soldInfo.csv', 'utf8', async (err, data) => {
-        if (err) {
-            console.error('Error reading file:', err);
-            return;
-        }
-        const infos = data.split('\r\n')
+    try {
+        const data = await fs.promises.readFile('soldInfo.csv', 'utf8');
+        const infos = data.split(/\r?\n/).filter(line => line.trim());
+
         for (const info of infos) {
             const rawData = info.split(',')
             const buyInfo: BuyInfoType = {
@@ -55,14 +53,15 @@ async function main() {
                 code: parseInt(rawData[6])
             }
             try {
-                await giveToken(buyInfo)
+                await giveToken(buyInfo);
             } catch (error) {
-                console.error("Failed tx:", buyInfo.tx)
-                fs.writeFileSync("Failed.txt", buyInfo.tx + '\n', { flag: 'a' });
+                console.error("Failed tx:", buyInfo.tx);
+                await fs.promises.appendFile("Failed.txt", `${buyInfo.tx}\n`);
             }
-            await new Promise((res) => setTimeout(res, 1000))
+            await new Promise(res => setTimeout(res, 1000));
         }
+    } catch (err) {
+        console.error('Error:', err);
     }
-    )
 }
 main();
