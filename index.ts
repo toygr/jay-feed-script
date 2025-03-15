@@ -27,15 +27,15 @@ const giveToken = async (buyInfo: BuyInfoType) => {
             lastValidBlockHeight,
             signature,
         }, "confirmed");
-        console.log(`https://solscan.io/tx/${signature}`);
-        fs.writeFileSync("Succeeded.txt", `${buyInfo.address},${signature}\n`, { flag: 'a' });
+        console.log(`${buyInfo.tx}: https://solscan.io/tx/${signature}`);
+        fs.writeFileSync("Succeeded.txt", `${buyInfo.tx},${signature}\n`, { flag: 'a' });
 
     } catch (error: any) {
         console.log("ERROR >>>", error, "<<<")
         if ((error.message as string).includes("Blockhash not found")) {
             await giveToken(buyInfo)
         } else {
-            fs.writeFileSync("Failed.txt", buyInfo.address + '\n', { flag: 'a' });
+            fs.writeFileSync("Failed.txt", buyInfo.tx + (error.message as string) + '\n', { flag: 'a' });
         }
     }
 }
@@ -51,13 +51,14 @@ async function main() {
             const buyInfo: BuyInfoType = {
                 address: rawData[2],
                 amount: parseInt(rawData[3]),
+                tx: rawData[5],
                 code: parseInt(rawData[6])
             }
             try {
                 await giveToken(buyInfo)
             } catch (error) {
-                console.error("Failed Address:", buyInfo.address)
-                fs.writeFileSync("Failed.txt", buyInfo.address + '\n', { flag: 'a' });
+                console.error("Failed tx:", buyInfo.tx)
+                fs.writeFileSync("Failed.txt", buyInfo.tx + '\n', { flag: 'a' });
             }
             await new Promise((res) => setTimeout(res, 1000))
         }
